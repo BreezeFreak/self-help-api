@@ -4,11 +4,12 @@ import (
 	"api/app"
 	"api/config"
 	"api/utils/middleware"
+	"api/utils/model"
 	"api/utils/response"
 	"github.com/gin-gonic/gin"
 )
 
-var routerMap = map[string]func(c *gin.Context, u *app.UrlDivide){
+var routerMap = map[string]func(c *gin.Context, u *model.UrlDivide){
 	"GET":    app.GET,
 	"POST":   app.POST,
 	"PUT":    app.PUT,
@@ -34,9 +35,13 @@ func Init() *gin.Engine {
 			return
 		}
 
-		var u app.UrlDivide
+		var u model.UrlDivide
 		if e := u.ParseUrl(c.Request.URL.Path); e != nil {
 			ginResponse.BadRequest(c, e)
+			return
+		}
+		if !u.Validate(c.Request.Method) {
+			ginResponse.MethodNotAllowed(c)
 			return
 		}
 

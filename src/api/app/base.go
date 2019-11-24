@@ -1,11 +1,11 @@
 package app
 
 import (
+	"api/utils/model"
 	"api/utils/mongodb"
 	"api/utils/response"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo/bson"
 	"io/ioutil"
@@ -16,10 +16,10 @@ func Index(c *gin.Context) {
 }
 
 // TODO, u.Action useless for now
-func GET(c *gin.Context, u *UrlDivide) {
+func GET(c *gin.Context, u *model.UrlDivide) {
 	if u.Id != "" {
 		var result interface{}
-		e := mongodb.FindOne(u.Collection, bson.M{"_id": bson.ObjectIdHex(u.Id)}, &result)
+		e := mongodb.FindOne(u.Collection, bson.M{"_id": u.Id}, &result)
 		ginResponse.Retrieve(c, result, e)
 		return
 	}
@@ -34,17 +34,12 @@ func GET(c *gin.Context, u *UrlDivide) {
 	}
 
 	var result []interface{}
-	count, e := mongodb.FindAll(u.Collection, bson.M{}, &result, mongodb.ExtParams{})
+	count, e := mongodb.FindAll(u.Collection, bson.M{}, &result, model.ExtParams{})
 	ginResponse.List(c, result, e, count)
 
 }
 
-func POST(c *gin.Context, u *UrlDivide) {
-	if u.Id != "" {
-		ginResponse.MethodNotAllowed(c)
-		return
-	}
-
+func POST(c *gin.Context, u *model.UrlDivide) {
 	switch u.Action {
 	case "":
 		break
@@ -57,31 +52,63 @@ func POST(c *gin.Context, u *UrlDivide) {
 	var jsonData bson.M
 
 	data, _ := ioutil.ReadAll(c.Request.Body)
-	if e:=json.Unmarshal(data, &jsonData);e!=nil{
+	if e := json.Unmarshal(data, &jsonData); e != nil {
 		ginResponse.BadRequest(c, e)
 		return
 	}
-	if len(jsonData) == 0{
-		ginResponse.BadRequest(c, errors.New("can not create a empty entry"))
+	if len(jsonData) == 0 {
+		ginResponse.BadRequest(c, errors.New("empty entry"))
+		return
+	}
+	delete(jsonData, "_id")
+	e := mongodb.Insert(u.Collection, jsonData)
+	ginResponse.OK(c, e)
+
+}
+
+func PUT(c *gin.Context, u *model.UrlDivide) {
+	switch u.Action {
+	case "":
+		break
+	default:
+		return
+	}
+	var jsonData bson.M
+
+	data, _ := ioutil.ReadAll(c.Request.Body)
+	if e := json.Unmarshal(data, &jsonData); e != nil {
+		ginResponse.BadRequest(c, e)
 		return
 	}
 
-	fmt.Println(jsonData)
+	e := mongodb.Update(u.Collection, bson.M{"_id": u.Id}, jsonData)
+	ginResponse.OK(c, e)
+}
 
-	var result []interface{}
-	count, e := mongodb.FindAll(u.Collection, bson.M{}, &result, mongodb.ExtParams{})
-	ginResponse.List(c, result, e, count)
+func PATCH(c *gin.Context, u *model.UrlDivide) {
+	switch u.Action {
+	case "":
+		break
+	default:
+		return
+	}
+	var patchData []model.PatchParams
+	if e := c.Bind(&patchData); e != nil {
+		ginResponse.BadRequest(c, e)
+		return
+	}
+	e := mongodb.Patch(u.Collection, u.Id, &patchData)
+	ginResponse.OK(c, e)
 
 }
 
-func PUT(c *gin.Context, u *UrlDivide) {
-
-}
-
-func PATCH(c *gin.Context, u *UrlDivide) {
-
-}
-
-func DELETE(c *gin.Context, u *UrlDivide) {
-
+func DELETE(c *gin.Context, u *model.UrlDivide) {
+	switch u.Action {
+	case "":
+		break
+	default:
+		return
+	}
+	e := mongodb.Delete(u.Collection, u.Id)
+	ginResponse.OK(c, e)
 }
