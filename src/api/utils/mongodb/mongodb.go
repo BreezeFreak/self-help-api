@@ -8,7 +8,6 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"log"
-	"strings"
 )
 
 var (
@@ -98,8 +97,7 @@ func PatchByQuery(collection string, query bson.M, patchData *[]model.PatchParam
 		log.Println("[PATCH]: " + fmt.Sprint(patch))
 		var set bson.M
 
-		k := strings.ReplaceAll(patch.Path[1:], "/", ".")
-		if e := patch.ParseQuery(&query, &set, k); e != nil {
+		if e := patch.ParseQuery(&query, &set); e != nil {
 			return e
 		}
 
@@ -110,7 +108,7 @@ func PatchByQuery(collection string, query bson.M, patchData *[]model.PatchParam
 				return errors.New(fmt.Sprintf("faild patching _id (%v), field (%v): %v", query["_id"], patch.Path, e.(error)))
 			}
 		}
-		delete(query, k)
+		delete(query, patch.Key)
 	}
 
 	return nil

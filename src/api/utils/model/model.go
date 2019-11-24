@@ -23,6 +23,8 @@ type PatchParams struct {
 	Op    string      `json:"op" bson:"op"`
 	Path  string      `json:"path" bson:"path"` // FIXME what if front parsing a value didn't startswith '/'
 	Value interface{} `json:"value" bson:"value"`
+
+	Key string
 }
 
 type ExtParams struct {
@@ -134,21 +136,22 @@ func (u *UrlDivide) getId(path string) error {
 	return nil
 }
 
-func (p *PatchParams) ParseQuery(query *bson.M, set *bson.M, k string) error {
-	if p.Path == "/_id"{
+func (p *PatchParams) ParseQuery(query *bson.M, set *bson.M) error {
+	if p.Path == "/_id" {
 		return errors.New("can do nothing on '_id'")
 	}
+	p.ParseKey()
 
 	var e error
 	switch p.Op {
 	case PatchOp.Add:
-		(*query)[k] = bson.M{"$exists": false}
+		(*query)[p.Key] = bson.M{"$exists": false}
 	case PatchOp.Replace:
 		fallthrough
 	case PatchOp.Remove:
 		fallthrough
 	case PatchOp.AddUp:
-		(*query)[k] = bson.M{"$exists": true}
+		(*query)[p.Key] = bson.M{"$exists": true}
 	case PatchOp.Move:
 		e = errors.New("TODO")
 	case PatchOp.Copy:
@@ -175,7 +178,7 @@ func (p *PatchParams) ParseQuery(query *bson.M, set *bson.M, k string) error {
 	default:
 		updateOp = "set"
 	}
-	*set = bson.M{"$" + updateOp: bson.M{k: p.Value}}
+	*set = bson.M{"$" + updateOp: bson.M{p.Key: p.Value}}
 
 	return e
 }
@@ -189,4 +192,8 @@ func (p *PatchParams) Ignore() bool {
 	default:
 		return false
 	}
+}
+
+func (p *PatchParams) ParseKey() {
+	p.Key = strings.ReplaceAll(p.Path[1:], "/", ".")
 }
