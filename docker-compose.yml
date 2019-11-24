@@ -1,0 +1,14 @@
+version: '3'
+services:
+  mwzz:
+    tty: true
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: buffet-api:latest
+    ports:
+    - "8091:80"
+    volumes:
+    - ./src:/www/src
+    - ./static:/www/static
+    - ./.env.default:/www/.env

@@ -1,0 +1,29 @@
+# Runtime and env file
+.env
+
+# Editor directories and files
+.DS_Store
+.idea
+.vscode/*
+
+# go module
+go.sum
+vendor
+
+# go folder
+bin
+pkg
+
+# test
+test
+
+# Plugin
+/src/github.com
+/src/gopkg.in
+
+# Backup
+*.bak
+
+# others
+deploy.yaml
+Jenkinsfile
