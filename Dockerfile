@@ -6,7 +6,8 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 COPY src /go/src
 WORKDIR /go
 ENV GO111MODULE on
-RUN cd /go/src/api && go build -mod=vendor
+ENV GOPROXY "https://goproxy.io"
+RUN cd /go/src/api && go build
 
 
 FROM alpine:3.9
