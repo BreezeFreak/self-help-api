@@ -162,13 +162,6 @@ func (p *PatchParams) ParseQuery(query *bson.M, set *bson.M) error {
 		e = errors.New("patch op invalid: " + p.Op)
 	}
 
-	if e != nil { // TODO remove after all done
-		if e.Error() != "TODO" {
-			return e
-		}
-		e = nil
-	}
-
 	var updateOp string
 	switch p.Op {
 	case PatchOp.AddUp:

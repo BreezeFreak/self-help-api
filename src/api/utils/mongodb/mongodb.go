@@ -98,6 +98,9 @@ func PatchByQuery(collection string, query bson.M, patchData *[]model.PatchParam
 		var set bson.M
 
 		if e := patch.ParseQuery(&query, &set); e != nil {
+			if e.Error() == "TODO"{  // TODO remove after all done
+				continue
+			}
 			return e
 		}
 
